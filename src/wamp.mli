@@ -26,19 +26,19 @@ module MsgType : sig
     | EVENT
 
   val of_enum : int -> t option
+
   val to_enum : t -> int
 end
 
 module Role : sig
-  type t =
-    | Subscriber
-    | Publisher
+  type t = Subscriber | Publisher
 
   val to_string : t -> string
 end
 
 module Element : sig
   type arr = t list
+
   and dict = (string * t) list
 
   and t =
@@ -49,9 +49,13 @@ module Element : sig
     | List of arr
 
   val to_int : t -> int
+
   val to_string : t -> string
+
   val to_bool : t -> bool
+
   val to_dict : t -> dict
+
   val to_list : t -> arr
 
   val pp : Format.formatter -> t -> unit
@@ -61,48 +65,77 @@ open Element
 
 module type S = sig
   type repr
+
   type t =
-    | Hello of { realm: Uri.t; details: dict }
-    | Welcome of { id: int; details: dict }
-    | Abort of { details: dict; reason: Uri.t }
-    | Goodbye of { details: dict; reason: Uri.t }
-    | Error of { reqtype: int; reqid: int; details: dict; error: Uri.t; args: arr; kwArgs: dict }
-    | Publish of { reqid: int; options: dict; topic: Uri.t; args: arr; kwArgs: dict }
-    | Published of { reqid: int; id: int }
-    | Subscribe of { reqid: int; options: dict; topic: Uri.t }
-    | Subscribed of { reqid: int; id: int }
-    | Unsubscribe of { reqid: int; id: int }
+    | Hello of {realm: Uri.t; details: dict}
+    | Welcome of {id: int; details: dict}
+    | Abort of {details: dict; reason: Uri.t}
+    | Goodbye of {details: dict; reason: Uri.t}
+    | Error of
+        { reqtype: int
+        ; reqid: int
+        ; details: dict
+        ; error: Uri.t
+        ; args: arr
+        ; kwArgs: dict }
+    | Publish of
+        { reqid: int
+        ; options: dict
+        ; topic: Uri.t
+        ; args: arr
+        ; kwArgs: dict }
+    | Published of {reqid: int; id: int}
+    | Subscribe of {reqid: int; options: dict; topic: Uri.t}
+    | Subscribed of {reqid: int; id: int}
+    | Unsubscribe of {reqid: int; id: int}
     | Unsubscribed of int
-    | Event of { subid: int; pubid: int; details: dict; args: arr; kwArgs: dict }
+    | Event of {subid: int; pubid: int; details: dict; args: arr; kwArgs: dict}
 
   val pp : Format.formatter -> t -> unit
+
   val show : t -> string
 
   val of_repr : repr -> (t, string) Result.result
+
   val to_repr : t -> repr
 
   val hello : realm:Uri.t -> details:dict -> t
+
   val welcome : id:int -> details:dict -> t
+
   val abort : details:dict -> reason:Uri.t -> t
+
   val goodbye : details:dict -> reason:Uri.t -> t
+
   val error :
-    reqtype:int -> reqid:int -> details:dict ->
-    error:Uri.t -> args:arr -> kwArgs:dict -> t
+       reqtype:int
+    -> reqid:int
+    -> details:dict
+    -> error:Uri.t
+    -> args:arr
+    -> kwArgs:dict
+    -> t
+
   val publish :
-    reqid:int -> options:dict -> topic:Uri.t ->
-    args:arr -> kwArgs:dict -> t
+    reqid:int -> options:dict -> topic:Uri.t -> args:arr -> kwArgs:dict -> t
+
   val published : reqid:int -> id:int -> t
+
   val subscribe : reqid:int -> options:dict -> topic:Uri.t -> t
+
   val subscribed : reqid:int -> id:int -> t
+
   val unsubscribe : reqid:int -> id:int -> t
+
   val unsubscribed : reqid:int -> t
+
   val event :
-    subid:int -> pubid:int -> details:dict ->
-    args:arr -> kwArgs:dict -> t
+    subid:int -> pubid:int -> details:dict -> args:arr -> kwArgs:dict -> t
 
   module EZ : sig
     val hello : Uri.t -> Role.t list -> t
-    val subscribe : ?reqid:int -> ?options: dict -> Uri.t -> int * t
+
+    val subscribe : ?reqid:int -> ?options:dict -> Uri.t -> int * t
   end
 end
 
@@ -110,10 +143,11 @@ module type BACKEND = sig
   type repr
 
   val of_repr : repr -> Element.t
+
   val to_repr : Element.t -> repr
 end
 
-module Make (B: BACKEND) : S with type repr := B.repr
+module Make (B : BACKEND) : S with type repr := B.repr
 
 (*---------------------------------------------------------------------------
    Copyright (c) 2016 Vincent Bernardoff
