@@ -12,12 +12,9 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
         ocaml-version:
           - 4.11.0
           - 4.10.1
-          - 4.09.1
-          - 4.08.1
 
     runs-on: ${{ matrix.os }}
 
@@ -30,18 +27,12 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-version }}
 
-      - run: opam pin add hello.dev . --no-action
+      - run: opam pin add -n wamp .
 
-      - run: opam depext hello --yes --with-doc --with-test
+      - run: opam depext wamp --yes --with-doc --with-test
 
       - run: opam install . --deps-only --with-doc --with-test
 
       - run: opam exec -- dune build
 
       - run: opam exec -- dune runtest
-
-      - name: Upload the build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-world.exe
-          path: _build/default/world.exe
